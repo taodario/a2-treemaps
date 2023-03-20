@@ -539,7 +539,17 @@ class TMTree:
         >>> t3.get_tree_at_position((100, 100)) is s2
         True
         """
-        # TODO: (Task 3) Implement this method
+        if not self._subtrees:
+            if (self.rect[0] <= pos[0] <= self.rect[0] + self.rect[2] and
+               self.rect[1] <= pos[1] <= self.rect[1] + self.rect[3]):
+                return self
+            else:
+                return None
+        else:
+            for subtree in self._subtrees:
+                if subtree.get_tree_at_position(pos) is not None:
+                    return subtree.get_tree_at_position(pos)
+            return None
 
     # TODO: (Task 4) Write the bodies of methods expand, expand_all, collapse,
     #       collapse_all, move, change_size, and test the displayed-tree
