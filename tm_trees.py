@@ -584,7 +584,11 @@ class TMTree:
         >>> s1.is_displayed_tree_leaf()
         True
         """
-        # TODO: (Task 4) Implement this method
+        if not self._subtrees:
+            return self
+        else:
+            self._expanded = True
+            return self._subtrees[0]
 
     def expand_all(self) -> TMTree:
         """
@@ -647,7 +651,13 @@ class TMTree:
         >>> d2.is_displayed_tree_leaf()
         True
         """
-        # TODO: (Task 4) Implement this method
+        if self._parent_tree is None:
+            return self
+        else:
+            self._parent_tree._expanded = False
+            for subtree in self._parent_tree._subtrees:
+                subtree._expanded = False
+            return self._parent_tree
 
     def collapse_all(self) -> TMTree:
         """
