@@ -501,7 +501,7 @@ class TMTree:
         >>> rectangles[1][0]
         (0, 50, 100, 150)
         """
-        if not self._subtrees:
+        if self.is_displayed_tree_leaf() is True:
             return [(self.rect, self._colour)]
         else:
             lst = []
@@ -543,7 +543,7 @@ class TMTree:
         >>> t3.get_tree_at_position((100, 100)) is s2
         True
         """
-        if not self._subtrees:
+        if self.is_displayed_tree_leaf() is True:
             if (self.rect[0] <= pos[0] <= self.rect[0] + self.rect[2] and
                self.rect[1] <= pos[1] <= self.rect[1] + self.rect[3]):
                 return self
