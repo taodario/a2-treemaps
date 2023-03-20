@@ -327,9 +327,13 @@ class TMTree:
         >>> t2.is_displayed_tree_leaf()
         False
         """
-        if not self._subtrees:
+        if self._expanded is True:
+            return False
+        if self._parent_tree is None:
             return True
-        return False
+        if self._parent_tree._expanded is False:
+            return False
+        return True
 
     def _get_path_string_helper(self) -> str:
         """
