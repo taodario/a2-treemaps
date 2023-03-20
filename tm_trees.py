@@ -458,11 +458,11 @@ class TMTree:
         y = rect[1]
         for subtree in self._subtrees[:-1]:
             if rect[2] > rect[3]:
-                width = math.floor(subtree.data_size / total_size * rect[2])
+                width = math.floor(subtree.data_size * rect[2] / total_size)
                 subtree.rect = (int(x), y, int(width), rect[3])
                 x += width
             if rect[2] <= rect[3]:
-                height = math.floor(subtree.data_size / total_size * rect[3])
+                height = math.floor(subtree.data_size * rect[3] / total_size)
                 subtree.rect = (x, int(y), rect[2], int(height))
                 y += height
         if rect[2] > rect[3]:
