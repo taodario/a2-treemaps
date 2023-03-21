@@ -590,6 +590,15 @@ class TMTree:
             self._expanded = True
             return self._subtrees[0]
 
+    def _expand_all_helper(self) -> TMTree:
+        """
+        Helper method for expand_all
+        """
+        if not self._subtrees:
+            return self
+        else:
+            return self._subtrees[-1]._expand_all_helper()
+
     def expand_all(self) -> TMTree:
         """
         Fully expand this TMTree and ALL of its subtrees.
@@ -622,7 +631,13 @@ class TMTree:
         >>> d2.is_displayed_tree_leaf()
         False
         """
-        # TODO: (Task 4) Implement this method
+        if not self._subtrees:
+            return self
+        else:
+            self._expanded = True
+            for subtree in self._subtrees:
+                subtree.expand_all()
+            return self._expand_all_helper()
 
     def collapse(self) -> TMTree:
         """
@@ -659,6 +674,14 @@ class TMTree:
                 subtree._expanded = False
             return self._parent_tree
 
+    def _collapse_all_helper(self) -> None:
+        """
+        Helper method for collapse_all
+        """
+        self._expanded = False
+        for subtree in self._subtrees:
+            subtree._collapse_all_helper()
+
     def collapse_all(self) -> TMTree:
         """
         Collapse the entire displayed-tree to a single node (the root).
@@ -681,7 +704,11 @@ class TMTree:
         >>> d3.is_displayed_tree_leaf()
         True
         """
-        # TODO: (Task 4) Implement this method
+        if self._parent_tree is None:
+            self._collapse_all_helper()
+            return self
+        else:
+            return self._parent_tree.collapse_all()
 
     def move(self, destination: TMTree) -> None:
         """
