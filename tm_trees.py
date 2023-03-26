@@ -558,11 +558,6 @@ class TMTree:
                     return subtree.get_tree_at_position(pos)
             return None
 
-    # TODO: (Task 4) Write the bodies of methods expand, expand_all, collapse,
-    #       collapse_all, move, change_size, and test the displayed-tree
-    #       functionality for the methods from Tasks 2 and 3 if you haven't
-    #       done so yet, since you can now expand and collapse the
-    #       displayed-tree.
     def expand(self) -> TMTree:
         """
         Set this tree to be expanded, and return its first (leftmost) subtree.
@@ -713,20 +708,7 @@ class TMTree:
         else:
             return self._parent_tree.collapse_all()
 
-    def _delete_data_size(self, data: int) -> None:
-        """
-        Subtract data from the data_size of the parent tree and its parent tree
-        and so on until we reach the root.
-
-        Precondition: self must be the root of the entire tree
-        """
-        if self._parent_tree is None:
-            pass
-        else:
-            self._parent_tree.data_size -= data
-            self._parent_tree._delete_data_size(data)
-
-    def _add_data_size(self, data: int) -> None:
+    def _update_data_size(self, data: int) -> None:
         """
         Add data to the data_size of the parent tree and its parent tree and so
         on until we reach the root.
@@ -737,7 +719,7 @@ class TMTree:
             pass
         else:
             self._parent_tree.data_size += data
-            self._parent_tree._add_data_size(data)
+            self._parent_tree._update_data_size(data)
 
     def _get_root(self) -> TMTree:
         """
@@ -815,7 +797,7 @@ class TMTree:
             self._parent_tree._expanded = False
 
         # Update data_size of its previous parent and so on
-        self._delete_data_size(self.data_size)
+        self._delete_data_size(-self.data_size)
 
         # Set the new parent_tree to be the destination
         self._parent_tree = destination
@@ -881,7 +863,27 @@ class TMTree:
         >>> s2.rect
         (0, 100, 100, 100)
         """
-        # TODO: (Task 4) Implement this method
+        # Figure out what the minimum data_size self can be
+        min_size = 1
+        if self._subtrees:
+            for subtree in self._subtrees:
+                min_size += subtree.data_size
+            min_size -= 1
+
+        # Check if the change in data_size is valid and apply it
+        change = math.ceil(self.data_size * factor)
+        if self.data_size * factor < 0:
+            change = math.floor(self.data_size * factor)
+        if self.data_size + change < min_size:
+            self._update_data_size(min_size - self.data_size)
+            self.data_size = min_size
+        else:
+            self.data_size += change
+            self._update_data_size(change)
+
+        # Update the rest of the tree
+        root = self._get_root()
+        root.update_rectangles(root.rect)
 
 
 ######################
