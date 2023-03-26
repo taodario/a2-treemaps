@@ -460,21 +460,24 @@ class TMTree:
 
         x = rect[0]
         y = rect[1]
-        for subtree in self._subtrees[:-1]:
+        if len(self._subtrees) == 1:
+            self._subtrees[0].rect = self.rect
+        else:
+            for subtree in self._subtrees[:-1]:
+                if rect[2] > rect[3]:
+                    width = math.floor(subtree.data_size * rect[2] / total_size)
+                    subtree.rect = (int(x), y, int(width), rect[3])
+                    x += width
+                if rect[2] <= rect[3]:
+                    height = math.floor(subtree.data_size * rect[3] / total_size)
+                    subtree.rect = (x, int(y), rect[2], int(height))
+                    y += height
             if rect[2] > rect[3]:
-                width = math.floor(subtree.data_size * rect[2] / total_size)
-                subtree.rect = (int(x), y, int(width), rect[3])
-                x += width
+                width = rect[2] - x
+                self._subtrees[-1].rect = (int(x), y, int(width), rect[3])
             if rect[2] <= rect[3]:
-                height = math.floor(subtree.data_size * rect[3] / total_size)
-                subtree.rect = (x, int(y), rect[2], int(height))
-                y += height
-        if rect[2] > rect[3]:
-            width = rect[2] - x
-            self._subtrees[-1].rect = (int(x), y, int(width), rect[3])
-        if rect[2] <= rect[3]:
-            height = rect[3] - y
-            self._subtrees[-1].rect = (x, int(y), rect[2], int(height))
+                height = rect[3] - y
+                self._subtrees[-1].rect = (x, int(y), rect[2], int(height))
 
         for subtree in self._subtrees:
             subtree.update_rectangles(subtree.rect)
@@ -710,6 +713,41 @@ class TMTree:
         else:
             return self._parent_tree.collapse_all()
 
+    def _delete_data_size(self, data: int) -> None:
+        """
+        Subtract data from the data_size of the parent tree and its parent tree
+        and so on until we reach the root.
+
+        Precondition: self must be the root of the entire tree
+        """
+        if self._parent_tree is None:
+            pass
+        else:
+            self._parent_tree.data_size -= data
+            self._parent_tree._delete_data_size(data)
+
+    def _add_data_size(self, data: int) -> None:
+        """
+        Add data to the data_size of the parent tree and its parent tree and so
+        on until we reach the root.
+
+        Precondition: self must be the root of the entire tree
+        """
+        if self._parent_tree is None:
+            pass
+        else:
+            self._parent_tree.data_size += data
+            self._parent_tree._add_data_size(data)
+
+    def _get_root(self) -> TMTree:
+        """
+        Return the root of the entire tree
+        """
+        if self._parent_tree is None:
+            return self
+        else:
+            return self._parent_tree._get_root()
+    
     def move(self, destination: TMTree) -> None:
         """
         Move this tree to be the last subtree of <destination>.
@@ -770,7 +808,25 @@ class TMTree:
         >>> s2.is_displayed_tree_leaf()
         True
         """
-        # TODO: (Task 4)  Implement this method
+        # Remove the leaf and add it to destination
+        index = self._parent_tree._subtrees.index(self)
+        destination._subtrees.append(self._parent_tree._subtrees.pop(index))
+        if not self._parent_tree._subtrees:
+            self._parent_tree._expanded = False
+
+        # Update data_size of its previous parent and so on
+        self._delete_data_size(self.data_size)
+
+        # Set the new parent_tree to be the destination
+        self._parent_tree = destination
+
+        # Update the data_size of its new parent and so on
+        self._add_data_size(self.data_size)
+
+        # Update the entire tree
+        root = self._get_root()
+        root.update_rectangles(root.rect)
+        self._parent_tree._expanded = True
 
     def change_size(self, factor: float) -> None:
         """
