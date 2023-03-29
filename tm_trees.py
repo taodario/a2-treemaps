@@ -937,7 +937,7 @@ class FileTree(TMTree):
 
 
 # TODO: (Task 5) make this class inherit from another class
-class DirectoryTree(FileTree):
+class DirectoryTree(TMTree):
     """A tree representation of a directory in a file system for use with
     our treemap visualizer.
 
@@ -1027,6 +1027,12 @@ class DirectoryTree(FileTree):
     #  parent class, based on the docstring examples AND any behaviour
     #  specified in the handout.
     # Hint: you should only have to write a fairly small amount of code here.
+    def move(self, destination: TMTree) -> None:
+        if isinstance(destination, FileTree):
+            raise OperationNotSupportedError
+        else:
+            TMTree.move(self, destination)
+
     def change_size(self, factor: float) -> None:
         raise OperationNotSupportedError
 
