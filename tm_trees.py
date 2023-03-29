@@ -105,7 +105,16 @@ def path_to_nested_tuple(path: str) -> tuple[str, int | list]:
     >>> rslt[1]
     [('images', [('Cats.pdf', 17)]), ('reading.md', 7)]
     """
-    # TODO: (Task 5) Implement this function
+    tup = (os.path.basename(path), [])
+    for file in ordered_listdir(path):
+        new_path = os.path.join(path, file)
+        if os.path.isdir(new_path):
+            new_file = path_to_nested_tuple(new_path)
+            tup[1].append(new_file)
+        else:
+            tup[1].append((os.path.basename(new_path),
+                           os.path.getsize(new_path) + 1))
+    return tup
 
 
 def ordered_listdir(path: str) -> list[str]:
