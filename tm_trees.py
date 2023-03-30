@@ -143,7 +143,16 @@ def dir_tree_from_nested_tuple(obj: tuple[str, int | list]) -> DirectoryTree:
 
     See the DirectoryTree's doctest examples for sample usage.
     """
-    # TODO: (Task 5) Implement this function
+    subtrees = []
+    for item in obj[1]:
+        if isinstance(item[1], int):
+            subtrees.append(FileTree(item[0], [], item[1]))
+        elif isinstance(item[1], list):
+            if not item[1]:
+                subtrees.append(DirectoryTree(item[0], []))
+            else:
+                subtrees.append(dir_tree_from_nested_tuple(item))
+    return DirectoryTree(obj[0], subtrees)
 
 
 # provided, do not modify this helper function
@@ -352,8 +361,8 @@ class TMTree:
         if self._parent_tree is None:
             return f"{self._name}"
         else:
-            return f"{self._parent_tree._get_path_string_helper()} | " \
-                   f"{self._name}"
+            return f"{self._parent_tree._get_path_string_helper()}"\
+                + self.get_separator() + f"{self._name}"
 
     # Methods for the string representation
     def get_path_string(self) -> str:
@@ -929,6 +938,12 @@ class FileTree(TMTree):
     """
     # TODO: (Task) 5 override or extend any methods as needed
     # Hint: you should only have to write a fairly small amount of code here.
+    def get_separator(self) -> str:
+        return '\\'
+
+    def get_suffix(self) -> str:
+        return " (file)"
+    
     def move(self, destination: TMTree) -> None:
         if isinstance(destination, FileTree):
             raise OperationNotSupportedError
@@ -1027,6 +1042,12 @@ class DirectoryTree(TMTree):
     #  parent class, based on the docstring examples AND any behaviour
     #  specified in the handout.
     # Hint: you should only have to write a fairly small amount of code here.
+    def get_separator(self) -> str:
+        return '\\'
+
+    def get_suffix(self) -> str:
+        return " (directory)"
+    
     def move(self, destination: TMTree) -> None:
         if isinstance(destination, FileTree):
             raise OperationNotSupportedError
