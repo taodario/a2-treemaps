@@ -478,28 +478,31 @@ class TMTree:
 
         x = rect[0]
         y = rect[1]
+        accumulator = 0
         if len(self._subtrees) == 1:
             self._subtrees[0].rect = self.rect
         else:
             for subtree in self._subtrees[:-1]:
                 if rect[2] > rect[3]:
-                    width = math.floor(subtree.data_size * rect[2] / total_size)
-                    subtree.rect = (int(x), y, int(width), rect[3])
-                    x += width
+                    w = math.floor(subtree.data_size * rect[2] / total_size)
+                    subtree.rect = (x, y, w, rect[3])
+                    x += w
+                    accumulator += w
                 if rect[2] <= rect[3]:
-                    height = math.floor(subtree.data_size * rect[3] / total_size)
-                    subtree.rect = (x, int(y), rect[2], int(height))
-                    y += height
+                    h = math.floor(subtree.data_size * rect[3] / total_size)
+                    subtree.rect = (x, y, rect[2], h)
+                    y += h
+                    accumulator += h
             if rect[2] > rect[3]:
-                width = rect[2] - x
-                self._subtrees[-1].rect = (int(x), y, int(width), rect[3])
+                w = rect[2] - accumulator
+                self._subtrees[-1].rect = (x, y, w, rect[3])
             if rect[2] <= rect[3]:
-                height = rect[3] - y
-                self._subtrees[-1].rect = (x, int(y), rect[2], int(height))
+                h = rect[3] - accumulator
+                self._subtrees[-1].rect = (x, y, rect[2], h)
 
         for subtree in self._subtrees:
             subtree.update_rectangles(subtree.rect)
-
+            
     def get_rectangles(self) -> list[tuple[tuple[int, int, int, int],
                                            tuple[int, int, int]]]:
         """Return a list with tuples for every leaf in the displayed-tree
