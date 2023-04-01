@@ -324,8 +324,7 @@ class TMTree:
             self._expanded = True
             for subtree in subtrees:
                 self.data_size += subtree.data_size
-        self._colour = (random.randint(0, 255), random.randint(0, 255),
-                        random.randint(0, 255))
+        self._colour = (randint(0, 255), randint(0, 255), randint(0, 255))
         self._name = name
         self._subtrees = subtrees
         self._parent_tree = None
@@ -502,7 +501,7 @@ class TMTree:
 
         for subtree in self._subtrees:
             subtree.update_rectangles(subtree.rect)
-            
+
     def get_rectangles(self) -> list[tuple[tuple[int, int, int, int],
                                            tuple[int, int, int]]]:
         """Return a list with tuples for every leaf in the displayed-tree
@@ -750,7 +749,7 @@ class TMTree:
             return self
         else:
             return self._parent_tree._get_root()
-    
+
     def move(self, destination: TMTree) -> None:
         """
         Move this tree to be the last subtree of <destination>.
@@ -817,14 +816,14 @@ class TMTree:
         if not self._parent_tree._subtrees:
             self._parent_tree._expanded = False
 
-        # Update data_size of its previous parent and so on
-        self._delete_data_size(-self.data_size)
+        # Update data_size of its previous parent and itd parent and so on
+        self._update_data_size(-self.data_size)
 
         # Set the new parent_tree to be the destination
         self._parent_tree = destination
 
-        # Update the data_size of its new parent and so on
-        self._add_data_size(self.data_size)
+        # Update the data_size of its new parent and its parent and so on
+        self._update_data_size(self.data_size)
 
         # Update the entire tree
         root = self._get_root()
@@ -851,8 +850,8 @@ class TMTree:
         the new data_size would be 4.
 
         Example II: if data_size is 140, then 1% of this is 1.4,
-        which is "rounded up" to 2. So its value could increase up to 152,
-        or decrease down to 148.
+        which is "rounded up" to 2. So its value could increase up to 142,
+        or decrease down to 138.
 
         Importantly, this method must:
 
@@ -911,50 +910,6 @@ class TMTree:
 # subclasses of TMTree
 ######################
 
-# TODO: (Task 5) make this class inherit from another class
-class FileTree(TMTree):
-    """
-    A tree representation of a file in a file system, for use with our
-    treemap visualizer.
-
-    Importantly, this class and DirectoryTree do not fully function as a
-    representation of a file system. For example, when "moving" files and
-    directories, one is still restricted to only moving leaves of the
-    displayed-tree.
-
-    The _name attribute stores the *name* of the file, not its full
-    path.
-
-    See the class docstring for DirectoryTree for detailed doctest examples
-    demonstrating the expected behaviour.
-
-    TODO: (Task 5)
-         Implement FileTree and DirectoryTree so that they are consistent
-         with DirectoryTree's docstring examples, as well as the behaviour
-         specified in the handout. You are free to reorder the definition of
-         these two classes or add another class as you see fit.
-
-    Important: Since you are free to implement these subclasses, we will only
-         create instances of them through calls to
-         dir_tree_from_nested_tuple, so please make sure to implement
-         that function correctly.
-    """
-    # TODO: (Task) 5 override or extend any methods as needed
-    # Hint: you should only have to write a fairly small amount of code here.
-    def get_separator(self) -> str:
-        return '\\'
-
-    def get_suffix(self) -> str:
-        return " (file)"
-    
-    def move(self, destination: TMTree) -> None:
-        if isinstance(destination, FileTree):
-            raise OperationNotSupportedError
-        else:
-            TMTree.move(self, destination)
-
-
-# TODO: (Task 5) make this class inherit from another class
 class DirectoryTree(TMTree):
     """A tree representation of a directory in a file system for use with
     our treemap visualizer.
@@ -962,7 +917,6 @@ class DirectoryTree(TMTree):
     The _name attribute stores the *name* of the directory, not its full
     path.
 
-
     A tree representation of a file in a file system, for use with our
     treemap visualizer.
 
@@ -973,12 +927,6 @@ class DirectoryTree(TMTree):
 
     The _name attribute stores the *name* of the file, not its full
     path.
-
-    TODO: (Task 5)
-         Implement FileTree and DirectoryTree so that they are consistent
-         with DirectoryTree's docstring examples, as well as the behaviour
-         specified in the handout. You are free to reorder the definition of
-         these two classes or add another class as you see fit.
 
     Important: Since you are free to implement these subclasses, we will only
          create instances of them through calls to
@@ -1041,16 +989,12 @@ class DirectoryTree(TMTree):
     >>> path_string == './empty_dir/data.xlsx (file)'.replace("/", os.path.sep)
     True
     """
-    # TODO: (Task 5) override or extend any methods that you need to from the
-    #  parent class, based on the docstring examples AND any behaviour
-    #  specified in the handout.
-    # Hint: you should only have to write a fairly small amount of code here.
     def get_separator(self) -> str:
         return '\\'
 
     def get_suffix(self) -> str:
         return " (directory)"
-    
+
     def move(self, destination: TMTree) -> None:
         if isinstance(destination, FileTree):
             raise OperationNotSupportedError
@@ -1059,6 +1003,34 @@ class DirectoryTree(TMTree):
 
     def change_size(self, factor: float) -> None:
         raise OperationNotSupportedError
+
+
+class FileTree(DirectoryTree):
+    """
+    A tree representation of a file in a file system, for use with our
+    treemap visualizer.
+
+    Importantly, this class and DirectoryTree do not fully function as a
+    representation of a file system. For example, when "moving" files and
+    directories, one is still restricted to only moving leaves of the
+    displayed-tree.
+
+    The _name attribute stores the *name* of the file, not its full
+    path.
+
+    See the class docstring for DirectoryTree for detailed doctest examples
+    demonstrating the expected behaviour.
+
+    Important: Since you are free to implement these subclasses, we will only
+         create instances of them through calls to
+         dir_tree_from_nested_tuple, so please make sure to implement
+         that function correctly.
+    """
+    def get_suffix(self) -> str:
+        return " (file)"
+
+    def change_size(self, factor: float) -> None:
+        TMTree.change_size(self, factor)
 
 
 class ChessTree(TMTree):
