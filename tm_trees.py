@@ -25,7 +25,6 @@ of several subclasses to represent specific types of data.
 from __future__ import annotations
 import os
 import math  # You can remove this math import if you don't end up using it.
-import random
 from random import randint
 from typing import Optional
 import webbrowser
@@ -175,13 +174,51 @@ def url_from_moves(moves: list[str]) -> str:
     return url
 
 
+def _create_dict(moves, last_move) -> dict:
+    """
+    Create a dictionary based on a set of moves
+    """
+    tup = (moves[-1], 0)
+    all_moves = {tup: last_move}
+    if len(moves) != 1:
+        all_moves = _create_dict(moves[:-1], all_moves)
+    return all_moves
+
+
+def _update_dict(main_dict, all_moves) -> None:
+    """
+    Update the main dictionary with a new dictionary
+    """
+    first = None
+    key = None
+    rest = None
+    for i in list(all_moves):
+        first = i[0]
+        key = i
+        rest = all_moves[i]
+
+    exists = False
+    for i in list(main_dict):
+        if i[0] == first:
+            exists = True
+            if rest == {}:
+                new = (i[0], i[1] + 1)
+                main_dict[new] = main_dict.pop(i)
+            elif main_dict[i] == {}:
+                main_dict[i] = rest
+            else:
+                _update_dict(main_dict[i], all_moves[key])
+    if not exists:
+        main_dict[key] = rest
+
+
 def moves_to_nested_dict(moves: list[list[str]]) -> dict[tuple[str,
                                                                int], dict]:
     """
-    Convert <games> into a nested dictionary representing the sequence of moves
+    Convert <moves> into a nested dictionary representing the sequence of moves
     made in the games.
 
-    Each list in <games> corresponds to one game, with the i'th str being the
+    Each list in <moves> corresponds to one game, with the i'th str being the
     i'th move of the game.
 
     The nested dictionary's keys are tuples containing the string representing
@@ -213,7 +250,20 @@ def moves_to_nested_dict(moves: list[list[str]]) -> dict[tuple[str,
     >>> d
     {('a', 0): {('b', 1): {('c', 1): {}}}, ('d', 0): {('e', 1): {('a', 1): {}}}}
     """
-    # TODO: (Task 6) Implement this function
+    main_dict = {}
+    for move in moves:
+        if not move:
+            pass
+        elif len(move) == 1:
+            tup = (move[0], 1)
+            all_moves = {tup: {}}
+            _update_dict(main_dict, all_moves)
+        else:
+            tup = (move[-1], 1)
+            last_move = {tup: {}}
+            all_moves = _create_dict(move[:-1], last_move)
+            _update_dict(main_dict, all_moves)
+    return main_dict
 
 
 ########
@@ -670,7 +720,6 @@ class TMTree:
         Precondition:
         self is a leaf of the displayed-tree
 
-
         >>> d1 = TMTree('C1', [], 5)
         >>> d2 = TMTree('C2', [d1], 1)
         >>> d1.is_displayed_tree_leaf()
@@ -1042,9 +1091,6 @@ class ChessTree(TMTree):
 
     _white_to_play: bool
 
-    # TODO: (Task 6) complete the implementation of this class, including
-    #       extending or overriding any methods inherited from TMTree.
-
     def __init__(self, move_dict: dict[tuple[str, int], dict],
                  last_move: str = "-",
                  white_to_play: bool = True,
@@ -1082,7 +1128,7 @@ class ChessTree(TMTree):
             e2e4 | (1) None
                 e7e5(1) None
         """
-        # TODO: (Task 6) Implement this method
+        pass
 
     def get_suffix(self) -> str:
         """
@@ -1100,7 +1146,18 @@ class ChessTree(TMTree):
         >>> second_last_node.get_suffix()
         ' (black to play)'
         """
-        # TODO: (Task 6) Implement this method
+        if not self._subtrees:
+            return " (end)"
+        elif self._white_to_play is True:
+            return " (white to play)"
+        else:
+            return " (black to play)"
+
+    def move(self, destination: TMTree) -> None:
+        raise OperationNotSupportedError
+
+    def change_size(self, factor: float) -> None:
+        raise OperationNotSupportedError
 
     def open_page(self) -> None:
         """
