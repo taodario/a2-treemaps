@@ -298,7 +298,6 @@ class TMTree:
         >>> t2.data_size
         6
         """
-        # TODO: (Task 1) Implement this method
         # Need to also enforce representation invariants
         # RI: If _subtrees is not empty, then data_size is greater than or equal
         #   to the sum of the data_size of each subtree
@@ -308,33 +307,35 @@ class TMTree:
         g = randint(0, 255)
         b = randint(0, 255)
         rgb = (r, g, b)
-        _colour = rgb
+        self._colour = rgb
 
         # tree with provided <name>
         # RI enforced by precondition
-        _name = name
+        self._name = name
 
         # RI is enforced for data_size in Precondition
         # a tree's data size attribute is initialized to be the sum of the sizes
         #   of its <subtrees> + <data_size>
-        data_size = len(subtrees) + data_size
+        self.data_size = data_size
+        for subtree in subtrees:
+            self.data_size += subtree.data_size
 
         # set this tree to be the parent for each of its subtrees
-        _subtrees = subtrees
+        for subtree in subtrees:
+            subtree._parent_tree = self
+        self._subtrees = subtrees
 
         # the tree is initially expanded, unless it has no subtrees
-        # if len(subtrees) == 0:
-        # pythonic way of checking if list is empty
-        if not subtrees:
-            _expanded = False
-        else:
-            _expanded = True
+        if not subtrees:  # checks if subtrees are empty
+            self._expanded = False
+        else:  # if subtrees are not empty, the tree is initially expanded
+            self._expanded = True
 
         # the rect attribute is initially None
-        rect = None
+        self.rect = None
 
         # this tree is initially a root (has no parent)
-        _parent_tree = None
+        self._parent_tree = None
 
     def is_displayed_tree_leaf(self) -> bool:
         """
@@ -349,14 +350,41 @@ class TMTree:
         >>> t2.is_displayed_tree_leaf()
         False
         """
-        # TODO: (Task 1) Implement this method
+        if not self._subtrees:  # return True if self has no subtrees.
+            return True
+        return False
+
+    # private helper function defined for get_path_string method
+    def _get_path_string_helper(self) -> str:
+        """
+        Helper for get_path_string method
+        """
+        # Base case
+        s = ''
+        # terminal case. The recursion will terminate here, once the base case
+        # is hit.
+        if self._parent_tree is None: # if there is no parent, that means we
+            # have hit the root
+            # we must define the base case to when it terminates. Ignore that
+            # this even exists after this is created. That is why it is known as
+            # the terminal case.
+            return self._name  # when the terminal case is hit, return the name
+            # of the root
+        else:
+            # this is what you would be doing normally
+            # pretend that the base case doesn't even exist.
+            # we want to return a string that adds the name of the top node,
+            # then add the name of this current node, separated by a '|'
+            s += self._parent_tree._get_path_string_helper() + \
+                 self.get_separator() + self._name
+            return s
 
     # Methods for the string representation
     def get_path_string(self) -> str:
         """
         Return a string representing the path containing this tree
         and its ancestors, using the separator for this tree between each
-        tree's name, and the suffic for this tree at the end. See the following
+        tree's name, and the suffix for this tree at the end. See the following
         doctest examples for the format.
 
         >>> d1 = TMTree('C1', [], 5)
@@ -366,8 +394,11 @@ class TMTree:
         'C(7) None'
         >>> d1.get_path_string()
         'C | C2 | C1(5) None'
+        >>> d4 = TMTree('C3', [d3], 3)
+        >>> d1.get_path_string()
+        'C3 | C | C2 | C1(5) None'
         """
-        # TODO: (Task 1)  Implement this method
+        return self._get_path_string_helper() + self.get_suffix()
 
     # Note: you may encounter an "R0201 (no self use error)" pyTA error related
     # to this method (and PyCharm might show a warning as well), but it should
@@ -454,8 +485,67 @@ class TMTree:
         (0, 50, 100, 150)
         >>> t3.rect
         (0, 0, 100, 200)
+        >>> s6 = TMTree('C4', [], 9)
+        >>> s7 = TMTree('C9', [s6, t3], 1)
+        >>> s7.update_rectangles((0, 0, 1000,200))
+        >>> s7.rect
+        (0, 0, 1000, 200)
+        >>> s6.rect
+        (0, 0, 300, 200)
+        >>> t3.rect
+        (300, 0, 700, 200)
         """
-        # TODO: (Task 2) Implement this method
+        # base case for recursive algorithm
+        # if the tree is a leaf, set self.rect as the rect input
+        self.rect = rect  # set the rect for this tree itself to rect input
+        if self.is_displayed_tree_leaf():  # returns true if this tree is a leaf
+            # in the displayed tree (means it has no subtrees)
+            self.rect = rect
+        # if it is not the base case, that means the tree has subtrees
+        # we want to recursively set the rect for subtrees of this tree
+        else:
+            # get a total datasize of the subtrees
+            total_data_size_of_subtrees = 0
+            for subtrees in self._subtrees:
+                total_data_size_of_subtrees += subtrees.data_size
+
+            # I need to somehow recursively set the rect for each subtree
+            if rect[2] > rect[3]:
+                counter = 0
+                previous_width = 0
+                for subtree in self._subtrees:
+                    proportion = subtree.data_size / total_data_size_of_subtrees
+                    y = rect[1]
+                    width = math.floor(rect[2] * proportion)
+                    if counter == 0:
+                        x = rect[0]
+                    else:
+                        x = math.floor(rect[0] + previous_width)
+                    height = rect[3]
+                    counter += 1
+                    previous_width += width
+                    subtree.update_rectangles((x, y, width, height))
+
+            else:  # if the height is greater than or equal to the width
+                counter = 0
+                previous_height = 0
+                for subtree in self._subtrees:
+                    proportion = subtree.data_size / total_data_size_of_subtrees
+                    x = rect[0]  # x coordinates are fixed for all subtrees
+                    height = math.floor(rect[3] * proportion)  # height doesn't
+                    # increment
+                    if counter == 0:  # if this is the first subtree, keep y
+                        # value the same
+                        y = rect[1]  # y value doesn't change if first subtree
+                    else:
+                        y = math.floor(rect[1] + previous_height)
+                    width = rect[2]  # width stays the same
+                    counter += 1  # increase counter by one
+                    previous_height += height
+                    subtree.update_rectangles((x, y, width, height))
+
+        # note: for this method above, need to add the edge case where the
+        #   rightmost rectangle fills the space.
 
     def get_rectangles(self) -> list[tuple[tuple[int, int, int, int],
                                            tuple[int, int, int]]]:
@@ -479,7 +569,16 @@ class TMTree:
         >>> rectangles[1][0]
         (0, 50, 100, 150)
         """
-        # TODO: (Task 2) Implement this method
+        list_of_tuples = []
+        if self.is_displayed_tree_leaf():  # base case: if this is a leaf
+            return [(self.rect, self._colour)]
+        # recursive step; we know that this tree has subtrees
+        else:
+            for subtree in self._subtrees:  # loop through the subtrees
+                list_of_tuples.extend(subtree.get_rectangles())  # must use
+                # extend here, because it is a recursive call, so the list_of_
+                # tuples gets larger and larger for each recursive call
+            return list_of_tuples
 
     def get_tree_at_position(self, pos: tuple[int, int]) -> Optional[TMTree]:
         """
@@ -515,7 +614,41 @@ class TMTree:
         >>> t3.get_tree_at_position((100, 100)) is s2
         True
         """
-        # TODO: (Task 3) Implement this method
+        # get the top left x, y coordinates and bottom right x, y coordinates
+        top_left_x = self.get_rectangles()[0][0][0]
+        top_left_y = self.get_rectangles()[0][0][1]
+        total_width = 0
+        total_height = 0
+
+        for item in self.get_rectangles():
+            total_width += item[0][2]
+            total_height += item[0][3]
+
+        bottom_right_x = top_left_x + total_width
+        bottom_right_y = top_left_y + total_height
+
+        # check if <pos> is within the coordinate boundaries, otherwise None
+        if top_left_x <= pos[0] <= bottom_right_x and top_left_y <= pos[1] <= \
+                bottom_right_y:
+            # base case:
+            if self.is_displayed_tree_leaf():
+                return self
+            # recursive case:
+            else:
+                # since we know that this tree has subtrees, recursively
+                # go through each subtree until we find the leaf that satisfies
+                # the <pos> and return that
+                for subtree in self._subtrees:
+                    # recursively call this function until base case is hit
+                    # base case is when the node is a leaf
+                    result = subtree.get_tree_at_position(pos)
+                    # this needs to be added because result could be none
+                    # so, it skips all cases in which it is none until it
+                    # actually prints something that isn't none.
+                    if result:
+                        return result
+        else:
+            return None
 
     # TODO: (Task 4) Write the bodies of methods expand, expand_all, collapse,
     #       collapse_all, move, change_size, and test the displayed-tree
