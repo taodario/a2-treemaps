@@ -615,17 +615,10 @@ class TMTree:
         True
         """
         # get the top left x, y coordinates and bottom right x, y coordinates
-        top_left_x = self.get_rectangles()[0][0][0]
-        top_left_y = self.get_rectangles()[0][0][1]
-        total_width = 0
-        total_height = 0
-
-        for item in self.get_rectangles():
-            total_width += item[0][2]
-            total_height += item[0][3]
-
-        bottom_right_x = top_left_x + total_width
-        bottom_right_y = top_left_y + total_height
+        top_left_x = self.rect[0]
+        top_left_y = self.rect[1]
+        bottom_right_x = top_left_x + self.rect[2]
+        bottom_right_y = top_left_y + self.rect[3]
 
         # check if <pos> is within the coordinate boundaries, otherwise None
         if top_left_x <= pos[0] <= bottom_right_x and top_left_y <= pos[1] <= \
@@ -680,6 +673,7 @@ class TMTree:
         True
         """
         # TODO: (Task 4) Implement this method
+
 
     def expand_all(self) -> TMTree:
         """
