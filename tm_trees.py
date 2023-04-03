@@ -174,7 +174,7 @@ def url_from_moves(moves: list[str]) -> str:
     return url
 
 
-def _create_dict(moves, last_move) -> dict:
+def _create_dict(moves: list, last_move: dict) -> dict:
     """
     Create a dictionary based on a set of moves
     """
@@ -185,7 +185,7 @@ def _create_dict(moves, last_move) -> dict:
     return all_moves
 
 
-def _update_dict(main_dict, all_moves) -> None:
+def _update_dict(main_dict: dict, all_moves: dict) -> None:
     """
     Update the main dictionary with a new dictionary
     """
@@ -551,6 +551,7 @@ class TMTree:
 
         for subtree in self._subtrees:
             subtree.update_rectangles(subtree.rect)
+        return None
 
     def get_rectangles(self) -> list[tuple[tuple[int, int, int, int],
                                            tuple[int, int, int]]]:
@@ -617,8 +618,8 @@ class TMTree:
         True
         """
         if self.is_displayed_tree_leaf() is True:
-            if (self.rect[0] <= pos[0] <= self.rect[0] + self.rect[2] and
-               self.rect[1] <= pos[1] <= self.rect[1] + self.rect[3]):
+            if (self.rect[0] <= pos[0] <= self.rect[0] + self.rect[2]
+                    and self.rect[1] <= pos[1] <= self.rect[1] + self.rect[3]):
                 return self
             else:
                 return None
@@ -1128,7 +1129,15 @@ class ChessTree(TMTree):
             e2e4 | (1) None
                 e7e5(1) None
         """
-        pass
+        subtrees = []
+        for i in move_dict:
+            subtrees.append(ChessTree(move_dict[i], i[0], not white_to_play,
+                                      i[1]))
+        for subtree in subtrees:
+            num_games_ended += subtree.data_size
+        TMTree.__init__(self, last_move, subtrees, num_games_ended)
+        self.data_size = num_games_ended
+        self._white_to_play = white_to_play
 
     def get_suffix(self) -> str:
         """
