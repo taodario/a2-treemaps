@@ -783,8 +783,6 @@ class TMTree:
         """
         Add data to the data_size of the parent tree and its parent tree and so
         on until we reach the root.
-
-        Precondition: self must be the root of the entire tree
         """
         if self._parent_tree is None:
             pass
@@ -793,6 +791,11 @@ class TMTree:
                 self._parent_tree.data_size = 1
             else:
                 self._parent_tree.data_size += data
+                min_size = 0
+                for subtree in self._parent_tree._subtrees:
+                    min_size += subtree.data_size
+                if self._parent_tree.data_size < min_size:
+                    self._parent_tree.data_size = min_size
             self._parent_tree._update_data_size(data)
 
     def _get_root(self) -> TMTree:
