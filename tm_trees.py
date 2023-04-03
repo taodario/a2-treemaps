@@ -625,8 +625,9 @@ class TMTree:
                 return None
         else:
             for subtree in self._subtrees:
-                if subtree.get_tree_at_position(pos) is not None:
-                    return subtree.get_tree_at_position(pos)
+                leaf = subtree.get_tree_at_position(pos)
+                if leaf is not None:
+                    return leaf
             return None
 
     def expand(self) -> TMTree:
@@ -788,7 +789,10 @@ class TMTree:
         if self._parent_tree is None:
             pass
         else:
-            self._parent_tree.data_size += data
+            if self._parent_tree.data_size + data < 1:
+                self._parent_tree.data_size = 1
+            else:
+                self._parent_tree.data_size += data
             self._parent_tree._update_data_size(data)
 
     def _get_root(self) -> TMTree:
@@ -1040,7 +1044,7 @@ class DirectoryTree(TMTree):
     True
     """
     def get_separator(self) -> str:
-        return '\\'
+        return os.path.sep
 
     def get_suffix(self) -> str:
         return " (directory)"
